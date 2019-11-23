@@ -12,7 +12,7 @@ app.use(bodyParser.json());
 
 //check token before render
 app.use(function (req, res, next) {
-    if (req.method === 'POST' && req.path === '/login') {
+    if (req.method === 'POST' && req.path === '/login' || req.method === 'GET' && req.path === '/car') {
         next();
     } else {
         if (req.headers.authorization) {
