@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-body">
+                <ul id="nav" class="list-group list-group-horizontal">
+                    <li class="list-group-item">
+                        <a data-href="login" href="login">Login</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a data-href="cars" href="cars">Cars</a>
+                    </li>
+                    <li class="list-group-item">
+                        <a data-href="logout" href="logout">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="add">
+        </div>
+        <div id="content">
+        </div>
+    </div>
+</body>
+
+<script>
+    //client routs
+    const links = document.querySelectorAll("#nav li [data-href]");
+    for (let i = 0; i < links.length; i++) {
+        links[i].addEventListener("click", function (e) {
+            e.preventDefault();
+            navigate(this.dataset.href)
+        });
+    }
+    function navigate(url) {
+        document.getElementById("content").innerHTML = "";
+        document.getElementById(`add`).innerHTML = ""; 
+        switch (url) {
+            case "login":
+                const login = makeLoginHtml();
+                document.getElementById("content").appendChild(login);
+                break;
+            case "cars":
+                const cars = makeCarsHtml();
+                document.getElementById("content").appendChild(cars);
+                break;
+            case "logout":
+                sessionStorage.removeItem("token");
+                navigate("login");
+                break;
+        }
+    }
+    //ajax
+    function ajaxCall(endpoint, data, verb, callback) {
+        const serverUri = "http://localhost:3201/";
+        const headers = { 'Content-Type': 'application/json' };
+        if (sessionStorage.getItem("token")) {
+            headers["Authorization"] = 'bearer ' + sessionStorage.getItem("token");
+        }
+        const fetchOptions = {
+            method: verb,
+            headers: headers
+        }
+        if (verb === "POST" && data || verb === "PUT" && data) {
+            fetchOptions["body"] = JSON.stringify(data);
+        }
+        fetch(serverUri + endpoint, fetchOptions).then(res => {
+            res.text().then(data => {
+                callback(data);
+            })
+        });
+    }
+    // login
+    function makeLoginHtml() {
+        const parent = document.createElement("div");
+
+        const userInput = document.createElement("input");
+        userInput.name = "user";
+        userInput.placeholder = "User";
+        userInput.classList.add("form-control");
+        const col1 = document.createElement("div");
+        col1.classList.add("col");
+        col1.appendChild(userInput);
+
+        const passInput = document.createElement("input");
+        passInput.name = "pass";
+        passInput.placeholder = "Pass";
+        passInput.type = "password";
+        passInput.classList.add("form-control");
+        const col2 = document.createElement("div");
+        col2.classList.add("col");
+        col2.appendChild(passInput);
+
+        const buttonLogin = document.createElement("button");
+        buttonLogin.innerText = "Login";
+        buttonLogin.classList.add("btn");
+        buttonLogin.classList.add("btn-primary");
+        buttonLogin.addEventListener("click", () => {
+            ajaxCall("login", {
+                user: document.querySelector("input[name='user']").value,
+                pass: document.querySelector("input[name='pass']").value
+            }, "POST", function (token) {
+                sessionStorage.setItem("token", token);
+                navigate("cars");
+            });
+        });
+        const col3 = document.createElement("div");
+        col3.classList.add("col");
+        col3.appendChild(buttonLogin);
+
+        const row = document.createElement("div");
+        row.classList.add("row");
+        row.appendChild(col1);
+        row.appendChild(col2);
+        row.appendChild(col3);
+
+        const cardBody = document.createElement("div");
+        cardBody.classList.add("card-body");
+        cardBody.appendChild(row);
+
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.appendChild(cardBody);
+
+        parent.appendChild(card);
+        return parent;
+    }
+    // cars
+    function makeCarsHtml() {
+        const parent = document.createElement("div");
+
+        //add
+        const buttonAdd = document.createElement("button");
+        buttonAdd.innerText = "ADD NEW CAR";
+        buttonAdd.classList.add("btn");
+        buttonAdd.classList.add("btn-success");
+        let leng = 0;
+        ajaxCall("member", null, "GET", function (data) {
+            data = JSON.parse(data);
+            leng = data.length;
+            leng = Number(data[leng-1].id) + 1;
+            return leng;
+        });
+        buttonAdd.addEventListener("click", () => {
+            let htmlAdd = '';
+            htmlAdd += `<form novalidate>
+                            <label>id: <input name="id" class="form-control" value="${leng}" readonly disabled style="background-color:#ccc"></label>
+                            <label>name: <input name="name" class="form-control"></label>
+                            <label>price: <input name="price" class="form-control"></label>
+                            <label>monthly: <input name="monthly" class="form-control"></label>
+                            <label>currency: <input name="currency" class="form-control"></label>
+                            <label>doors: <input name="doors" class="form-control"></label>
+                            <label>seats: <input name="seats" class="form-control"></label>
+                            <label>image: <input name="image" class="form-control"></label>
+                            <button id='save' class="btn btn-success">Save</button>
+                        </form>`
+            document.getElementById(`add`).innerHTML = htmlAdd;
+            document.getElementById('save').addEventListener('click', function (e) {
+                e.preventDefault();
+                let car = {
+                    id: this.form.id.value,
+                    name: this.form.name.value,
+                    price: this.form.price.value,
+                    monthly: this.form.monthly.value,
+                    currency: this.form.currency.value,
+                    doors: this.form.doors.value,
+                    seats: this.form.seats.value,
+                    image: this.form.image.value
+                };
+                ajaxCall("member", car, "POST", function (data) {
+                    document.getElementById(`add`).innerHTML = "";
+                    setView(data);
+                });
+            });   
+        });
+
+
+        function setView() {
+            ajaxCall("member", null, "GET", function (data) {
+                if (typeof data === "string") {
+                    data = JSON.parse(data);
+                }
+                if (data !== null) {
+                    const name = document.createElement("th");
+                    name.innerText = "Name";
+                    const price = document.createElement("th");
+                    price.innerText = "Price";
+                    const priceMonthly = document.createElement("th");
+                    priceMonthly.innerText = "Price monthly";
+                    const currrency = document.createElement("th");
+                    currrency.innerText = "Currrency";
+                    const doors = document.createElement("th");
+                    doors.innerText = "Doors";
+                    const seats = document.createElement("th");
+                    seats.innerText = "Seats";
+                    const image = document.createElement("th");
+                    image.innerText = "Image";
+                    const add = document.createElement("th");
+                    add.appendChild(buttonAdd);
+
+                    const row = document.createElement("tr");
+                    row.appendChild(name);
+                    row.appendChild(price);
+                    row.appendChild(priceMonthly);
+                    row.appendChild(currrency);
+                    row.appendChild(doors);
+                    row.appendChild(seats);
+                    row.appendChild(image);
+                    row.appendChild(add);
+
+                    const head = document.createElement("thead");
+                    head.appendChild(row);
+                    const body = document.createElement("tbody");
+                    body.id = "cars";
+
+                    const table = document.createElement("table");
+                    table.classList.add("table");
+                    table.classList.add("table-dark");
+                    table.classList.add("table-hover");
+                    table.appendChild(head);
+                    table.appendChild(body);
+                    parent.appendChild(table);
+                }
+                tableView(data);
+            });
+        }
+        setView();
+        function tableView(cars) {
+            //show all
+            let html = '';
+            for (let i = 0; i < cars.length; i++) {
+                html += `<tr id="${cars[i].id}">
+                    <td>${cars[i].name}</td>
+                    <td>${cars[i].price}</td>
+                    <td>${cars[i].monthly}</td>
+                    <td>${cars[i].currency}</td>
+                    <td>${cars[i].doors}</td>
+                    <td>${cars[i].seats}</td>
+                    <td><img src="img/${cars[i].image}" style="width:100px"></td>
+                    <td><button id="edit-${cars[i].id}" style="float:left" class="btn btn-success">EDIT</button>
+                        <button id="delete-${cars[i].id}" style="float:right" class="btn btn-danger">DELETE</button></td>
+                </tr>`
+            }
+            document.getElementById('cars').innerHTML = html;
+            for (let i = 0; i < cars.length; i++) {
+                //delete
+                document.getElementById(`delete-${cars[i].id}`).addEventListener('click', function (e) {
+                    ajaxCall(`member/${cars[i].id}`, null, "DELETE", function (data) {
+                        setView();
+                    });
+                })
+                //edit
+                document.getElementById(`edit-${cars[i].id}`).addEventListener('click', function (e) {
+                    document.getElementById(`${cars[i].id}`).innerHTML = "";
+                    ajaxCall(`member/${cars[i].id}`, null, "GET", function (data) {
+                        data = JSON.parse(data);
+                        edit(data);
+                    });
+                    function edit(car) {
+                        let htmlOne = '';
+                        htmlOne += `<td colspan="8">
+                                                <form novalidate>
+                                                    <label>id: <input name="id" value="${car.id}" class="form-control" readonly disabled style="background-color:#ccc"></label>
+                                                    <label>name: <input name="name" value="${car.name}" class="form-control"></label>
+                                                    <label>price: <input name="price" value="${car.price}" class="form-control"></label>
+                                                    <label>monthly: <input name="monthly" value="${car.monthly}" class="form-control"></label>
+                                                    <label>currency: <input name="currency" value="${car.currency}" class="form-control"></label>
+                                                    <label>doors: <input name="doors" value="${car.doors}" class="form-control"></label>
+                                                    <label>seats: <input name="seats" value="${car.seats}" class="form-control"></label>
+                                                    <label>image: <input name="image" value="${car.image}" class="form-control"></label>
+                                                    <button id='save' class="btn btn-success">Save</button>
+                                                </form>
+                                            </td>`
+                                            console.log(`${car.id}`);
+                                            
+                        document.getElementById(`${car.id}`).innerHTML = htmlOne;
+                        document.getElementById('save').addEventListener('click', function (e) {
+                            e.preventDefault();
+                            let car = {
+                                id: this.form.id.value,
+                                name: this.form.name.value,
+                                price: this.form.price.value,
+                                monthly: this.form.monthly.value,
+                                currency: this.form.currency.value,
+                                doors: this.form.doors.value,
+                                seats: this.form.seats.value,
+                                image: this.form.image.value
+                            };
+                            ajaxCall(`member/${cars[i].id}`, car, "PUT", function (data) {
+                                document.getElementById(`${cars[i].id}`).innerHTML = `<tr id="${car.id}">
+                                                                                            <td>${car.name}</td>
+                                                                                            <td>${car.price}</td>
+                                                                                            <td>${car.monthly}</td>
+                                                                                            <td>${car.currency}</td>
+                                                                                            <td>${car.doors}</td>
+                                                                                            <td>${car.seats}</td>
+                                                                                            <td><img src="img/${car.image}" style="width:100px"></td>
+                                                                                            <td><button id="edit-${car.id}" style="float:left" class="btn btn-success">EDIT</button>
+                                                                                                <button id="delete-${car.id}" style="float:right"  class="btn btn-danger">DELETE</button></td>
+                                                                                        </tr>`;
+                                setView();
+                            });
+                        });
+                    }
+                })
+            }
+        }
+        return parent;
+    }  
+</script>
+
+</html>

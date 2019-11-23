@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
+    <title>Document</title>
+</head>
+
+<body>
+    <div class="container">
+        <table  class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Price monthly</th>
+                    <th>Currrency</th>
+                    <th>Doors</th>
+                    <th>Seats</th>
+                    <th>Image</th>
+                </tr>
+            </thead>
+            <tbody id='cars'>
+            </tbody>
+        </table>
+    </div>
+</body>
+
+<script>
+    const endpoint = 'http://localhost:3201/car';
+    fetch(endpoint).then(data => {
+        data.json().then(tableView);
+    });
+    function tableView(cars) {
+        //show all
+        let html = '';
+        for (let i = 0; i < cars.length; i++) {
+            html += `<tr>
+                    <td>${cars[i].name}</td>
+                    <td>${cars[i].price}</td>
+                    <td>${cars[i].monthly}</td>
+                    <td>${cars[i].currency}</td>
+                    <td>${cars[i].doors}</td>
+                    <td>${cars[i].seats}</td>
+                    <td><img src="img/${cars[i].image}" style="width:100px"></td>
+                </tr>`
+        }
+        document.getElementById('cars').innerHTML = html;
+    }
+</script>
+
+</html>

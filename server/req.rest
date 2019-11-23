@@ -1,0 +1,14 @@
+PUT http://localhost:3201/car/6
+Content-Type: application/json
+
+{
+    "id": 6,
+    "name": "אופל ויוארו 1.6 קצר נמוך L1H1",
+    "price": 219900,
+    "monthly": 2199,
+    "currency": "ils",
+    "doors": 5,
+    "seats": 7,
+    "image": "opel-viaro-l1h1.jpg"
+}
+
