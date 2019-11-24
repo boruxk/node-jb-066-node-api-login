@@ -15,6 +15,9 @@
             <div class="card-body">
                 <ul id="nav" class="list-group list-group-horizontal">
                     <li class="list-group-item">
+                        <a data-href="register" href="register">Register</a>
+                    </li>
+                    <li class="list-group-item">
                         <a data-href="login" href="login">Login</a>
                     </li>
                     <li class="list-group-item">
@@ -44,8 +47,12 @@
     }
     function navigate(url) {
         document.getElementById("content").innerHTML = "";
-        document.getElementById(`add`).innerHTML = ""; 
+        document.getElementById(`add`).innerHTML = "";
         switch (url) {
+            case "register":
+                const register = makeRegHtml();
+                document.getElementById("content").appendChild(register);
+                break;
             case "login":
                 const login = makeLoginHtml();
                 document.getElementById("content").appendChild(login);
@@ -81,6 +88,75 @@
         });
     }
     // login
+    function makeRegHtml() {
+        const parent = document.createElement("div");
+
+        const mailInput = document.createElement("input");
+        mailInput.name = "reg";
+        mailInput.placeholder = "Mail";
+        mailInput.classList.add("form-control");
+        const col1 = document.createElement("div");
+        col1.classList.add("col");
+        col1.appendChild(mailInput);
+
+        const userInput = document.createElement("input");
+        userInput.name = "user";
+        userInput.placeholder = "User";
+        userInput.classList.add("form-control");
+        const col2 = document.createElement("div");
+        col2.classList.add("col");
+        col2.appendChild(userInput);
+
+        const passInput = document.createElement("input");
+        passInput.name = "pass";
+        passInput.placeholder = "Pass";
+        passInput.type = "password";
+        passInput.classList.add("form-control");
+        const col3 = document.createElement("div");
+        col3.classList.add("col");
+        col3.appendChild(passInput);
+
+        const buttonLogin = document.createElement("button");
+        buttonLogin.innerText = "Register";
+        buttonLogin.classList.add("btn");
+        buttonLogin.classList.add("btn-primary");
+        buttonLogin.addEventListener("click", () => {
+            ajaxCall("register", {
+                mail: btoa(document.querySelector("input[name='reg']").value),
+                user: btoa(document.querySelector("input[name='user']").value),
+                pass: btoa(document.querySelector("input[name='pass']").value)
+            }, "POST", function (user) {
+                if (user !== "0") {
+                    document.getElementById("content").innerHTML = "<div class='card'><div class='card-body'><h3>USER OR MAIL IS OCCUPIED</h3></div></div>";
+                    setTimeout(function () { navigate("register"); }, 2000);
+                } else {
+                    navigate("login");
+                }
+            });
+        });
+        const col4 = document.createElement("div");
+        col4.classList.add("col");
+        col4.appendChild(buttonLogin);
+
+        const row = document.createElement("div");
+        row.classList.add("row");
+        row.appendChild(col1);
+        row.appendChild(col2);
+        row.appendChild(col3);
+        row.appendChild(col4);
+
+        const cardBody = document.createElement("div");
+        cardBody.classList.add("card-body");
+        cardBody.appendChild(row);
+
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.appendChild(cardBody);
+
+        parent.appendChild(card);
+        return parent;
+    }
+    // login
     function makeLoginHtml() {
         const parent = document.createElement("div");
 
@@ -110,8 +186,13 @@
                 user: btoa(document.querySelector("input[name='user']").value),
                 pass: btoa(document.querySelector("input[name='pass']").value)
             }, "POST", function (token) {
-                sessionStorage.setItem("token", token);
-                navigate("cars");
+                if (token === "") {
+                    document.getElementById("content").innerHTML = "<div class='card'><div class='card-body'><h3>ACCESS DENIED</h3></div></div>";
+                    setTimeout(function () { navigate("login"); }, 2000);
+                } else {
+                    sessionStorage.setItem("token", token);
+                    navigate("cars");
+                }
             });
         });
         const col3 = document.createElement("div");
@@ -148,7 +229,7 @@
         ajaxCall("member", null, "GET", function (data) {
             data = JSON.parse(data);
             leng = data.length;
-            leng = Number(data[leng-1].id) + 1;
+            leng = Number(data[leng - 1].id) + 1;
             return leng;
         });
         buttonAdd.addEventListener("click", () => {
@@ -181,7 +262,7 @@
                     document.getElementById(`add`).innerHTML = "";
                     setView(data);
                 });
-            });   
+            });
         });
 
 
@@ -281,8 +362,8 @@
                                                     <button id='save' class="btn btn-success">Save</button>
                                                 </form>
                                             </td>`
-                                            console.log(`${car.id}`);
-                                            
+                        console.log(`${car.id}`);
+
                         document.getElementById(`${car.id}`).innerHTML = htmlOne;
                         document.getElementById('save').addEventListener('click', function (e) {
                             e.preventDefault();

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const bllogin = require('../bllogin');
+const bl = require('../bllogin');
 const jwt = require('jsonwebtoken');
 const atob = require('atob');
 const SEKRET_KEY_JWT = "4rfu40rjf48urnf34u40fu8j04fj34fu9r4jnu94";
@@ -9,9 +9,7 @@ router.post("/", function (req, res) {
     let {user, pass} = req.body;
     user = atob(user);
     pass = atob(pass);
-    console.log(user, pass);
-    
-    bllogin.compareLogin(user, pass, function (e, _user) {
+    bl.compareLogin(null, user, pass, function (e, _user) {
         if (e) {
             return res.status(500).send();
         } else {

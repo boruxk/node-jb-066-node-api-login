@@ -65,14 +65,34 @@ function deleteOne(idToDelete, callback) {
     });
 }
 
-function compare(user, pass, callback) {
+function compare(mail, user, pass, callback) {
     fs.readFile(fileName, (e, d) => {
         const data = d && d.length > 0 ? JSON.parse(d.toString()) : [];
-        const _user = data.filter(u => u.pass === pass && u.user === user);
-        if (_user.length === 0) {
-            callback(null, "error");
+        if (mail !== null) {
+            //reg check
+            const _user = data.filter(u => u.mail === mail || u.user === user);
+            if (_user.length !== 0) {
+                callback(null, "error");
+            } else {
+                data.push({"mail": mail, "user": user, "pass": pass});
+                fs.writeFile(fileName, JSON.stringify(data), (e) => {
+                    if (e) {
+                        console.log(e);
+                        callback('error');
+                    }
+                    else {
+                        callback(null, _user.length.toString());
+                    }
+                });
+            }
         } else {
-            callback(null, _user);
+            //login check
+            const _user = data.filter(u => u.pass === pass && u.user === user);
+            if (_user.length === 0) {
+                callback(null, "error");
+            } else {
+                callback(null, _user);
+            }
         }
     });
 }

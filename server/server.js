@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 //check token before render
 app.use(function (req, res, next) {
-    if (req.method === 'POST' && req.path === '/login' || req.method === 'GET' && req.path === '/car') {
+    if (req.method === 'POST' && req.path === '/register' || req.method === 'POST' && req.path === '/login' || req.method === 'GET' && req.path === '/car') {
         next();
     } else {
         if (req.headers.authorization) {
@@ -28,15 +28,13 @@ app.use(function (req, res, next) {
 })
 
 const car = require('./routes/cars');
+const register = require('./routes/reg');
 const login = require('./routes/login');
 const member = require('./routes/member');
 app.use('/car', car);
+app.use('/register', register);
 app.use('/login', login);
 app.use('/member', member);
-
-app.post("/register", function (req, res) {
-
-})
 
 app.listen(process.env.PORT || PORT, () =>
     console.log(`App listening on port ${PORT}!`),

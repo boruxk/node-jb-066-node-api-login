@@ -2,7 +2,7 @@ delete require.cache[require.resolve('./dal')];
 const dalFunc = require('./dal');
 const dal = dalFunc('db/login.json');
 
-function compareLogin(mail, user, pass, callback) {
+function compareReg(mail, user, pass, callback) {
     dal.compare(mail, user, pass, function (err, _user) {
         if (err) {
             callback(err);
@@ -12,4 +12,4 @@ function compareLogin(mail, user, pass, callback) {
     })
 }
 
-module.exports.compareLogin = compareLogin;
+module.exports.compareReg = compareReg;
