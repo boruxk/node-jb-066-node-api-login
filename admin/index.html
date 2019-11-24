@@ -107,8 +107,8 @@
         buttonLogin.classList.add("btn-primary");
         buttonLogin.addEventListener("click", () => {
             ajaxCall("login", {
-                user: document.querySelector("input[name='user']").value,
-                pass: document.querySelector("input[name='pass']").value
+                user: btoa(document.querySelector("input[name='user']").value),
+                pass: btoa(document.querySelector("input[name='pass']").value)
             }, "POST", function (token) {
                 sessionStorage.setItem("token", token);
                 navigate("cars");
