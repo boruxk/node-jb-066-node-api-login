@@ -1,100 +1,90 @@
 const fs = require('fs');
 let fileName = '';
+const mysql = require('mysql');
+const db = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    password: '',
+    database: 'leasing'
+});
+db.connect((err) => {
+    if (err) throw err;
+    console.log('Connected to database');
+});
 
 function readAll(callback) {
-    fs.readFile(fileName, (e, d) => {
-        const data = d && d.length > 0 ? JSON.parse(d.toString()) : [];
-        callback(null, data);
+    let query = "SELECT * FROM `car` ORDER BY id ASC";
+    db.query(query, (err, result) => {
+        if (err) { callback('error'); }
+        else {
+            const data = result;
+            callback(null, data);
+        }
     });
 }
 
 function readOne(id, callback) {
-    fs.readFile(fileName, (e, d) => {
-        let data = d && d.length > 0 ? JSON.parse(d.toString()) : [];
-        data = data.filter(phone => phone.id.toString() === id);
-        let [dataOne] = data;
-        callback(null, dataOne);
+    id = Number(id);
+    let query = `SELECT * FROM car WHERE id = ${id}`;
+    db.query(query, (err, result) => {
+        if (err) { callback('error'); }
+        else {
+            let [dataOne] = result;
+            callback(null, dataOne);
+        }
     });
 }
 
 function saveOne(oneToSave, callback) {
-    fs.readFile(fileName, (e, d) => {
-        const data = d && d.length > 0 ? JSON.parse(d.toString()) : [];
-        data.push(oneToSave);
-        fs.writeFile(fileName, JSON.stringify(data), (e) => {
-            if (e) {
-                callback('error');
-            }
-            else {
-                callback(null, data);
-            }
-        });
+    let query = `INSERT INTO car (id, name, price, monthly, currency, doors, seats, image) VALUES (${oneToSave.id}, '${oneToSave.name}', ${oneToSave.price}, ${oneToSave.monthly}, '${oneToSave.currency}', ${oneToSave.doors}, ${oneToSave.seats}, '${oneToSave.image}')`
+    db.query(query, (err, result) => {
+        if (err) { callback('error'); }
+        else { callback(null, result); }
     });
 }
 
 function updateOne(car, callback) {
-    fs.readFile(fileName, (e, d) => {
-        const data = d && d.length > 0 ? JSON.parse(d.toString()) : [];
-        const index = data.findIndex(({ id }) => id.toString() === car.id);
-        data[index] = car;
-        fs.writeFile(fileName, JSON.stringify(data), (e) => {
-            if (e) {
-                console.log(e);
-                callback('error');
-            }
-            else {
-                callback(null);
-            }
-        });
+    id = Number(car.id);
+    let query = `UPDATE car SET id = ${car.id}, name = '${car.name}', price = ${car.price}, monthly = ${car.monthly}, currency = '${car.currency}', doors = ${car.doors}, seats = ${car.seats}, image = '${car.image}' WHERE  id = ${id}`;
+    db.query(query, (err, result) => {
+        if (err) { callback('error'); }
+        else { callback(null); }
     });
 }
 
 function deleteOne(idToDelete, callback) {
-    fs.readFile(fileName, (e, d) => {
-        const data = d && d.length > 0 ? JSON.parse(d.toString()) : [];
-        const data2 = data.filter(({ id }) => id.toString() !== idToDelete);
-        fs.writeFile(fileName, JSON.stringify(data2), (e) => {
-            if (e) {
-                console.log(e);
-                callback('error');
-            }
-            else {
-                callback(null);
-            }
-        });
+    id = Number(idToDelete);
+    let query = `DELETE FROM car WHERE id = ${id}`;
+    db.query(query, (err, result) => {
+        if (err) { callback('error'); }
+        else { callback(null); }
     });
 }
 
 function compare(mail, user, pass, callback) {
-    fs.readFile(fileName, (e, d) => {
-        const data = d && d.length > 0 ? JSON.parse(d.toString()) : [];
-        if (mail !== null) {
-            //reg check
-            const _user = data.filter(u => u.mail === mail || u.user === user);
-            if (_user.length !== 0) {
-                callback(null, "error");
-            } else {
-                data.push({"mail": mail, "user": user, "pass": pass});
-                fs.writeFile(fileName, JSON.stringify(data), (e) => {
-                    if (e) {
-                        console.log(e);
-                        callback('error');
-                    }
-                    else {
-                        callback(null, _user.length.toString());
-                    }
+    if (mail !== null) {
+        //reg check
+        let query = `SELECT * FROM user WHERE mail LIKE '${mail}' OR user LIKE '${user}'`;
+        db.query(query, (err, result) => {
+            if (err || result.length !== 0) {callback(null, "error");}
+            else { 
+                let query = `INSERT INTO user (mail, user, pass) VALUES ('${mail}', '${user}', '${pass}')`
+                db.query(query, (err, result) => {
+                    if (err) { callback('error'); }
+                    else { callback(null, "0");  }
                 });
             }
-        } else {
-            //login check
-            const _user = data.filter(u => u.pass === pass && u.user === user);
-            if (_user.length === 0) {
-                callback(null, "error");
-            } else {
-                callback(null, _user);
+        });
+    } else {
+        //login check
+        let query = `SELECT * FROM user WHERE user LIKE '${user}' AND pass LIKE '${pass}'`;
+        db.query(query, (err, result) => {
+            if (err || result.length === 0) { callback(null, "error"); }
+            else { 
+                callback(null, result); 
             }
-        }
-    });
+        });
+    }
 }
 
 function dalModule(_fileName) {

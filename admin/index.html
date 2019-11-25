@@ -87,7 +87,7 @@
             })
         });
     }
-    // login
+    // register
     function makeRegHtml() {
         const parent = document.createElement("div");
 
@@ -265,13 +265,12 @@
             });
         });
 
-
         function setView() {
             ajaxCall("member", null, "GET", function (data) {
                 if (typeof data === "string") {
                     data = JSON.parse(data);
-                }
-                if (data !== null) {
+                }               
+                if (document.getElementById(`cars`) === null) {
                     const name = document.createElement("th");
                     name.innerText = "Name";
                     const price = document.createElement("th");
@@ -362,8 +361,6 @@
                                                     <button id='save' class="btn btn-success">Save</button>
                                                 </form>
                                             </td>`
-                        console.log(`${car.id}`);
-
                         document.getElementById(`${car.id}`).innerHTML = htmlOne;
                         document.getElementById('save').addEventListener('click', function (e) {
                             e.preventDefault();
