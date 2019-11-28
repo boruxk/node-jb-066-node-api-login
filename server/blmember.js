@@ -1,9 +1,9 @@
-delete require.cache[require.resolve('./dal')];
 const dalFunc = require('./dal');
 const dal = dalFunc('db/test.json');
 
 function getCars(callback) {
-    dal.readAll(function (err, data) {
+    let query = "SELECT * FROM `car` ORDER BY id ASC";
+    dal.readAll(query, function (err, data) {
         if (err) {
             callback(err);
         } else {
@@ -13,7 +13,8 @@ function getCars(callback) {
 }
 
 function getCar(id, callback) {
-    dal.readOne(id, function (err, data) {
+    let query = `SELECT * FROM car WHERE id = ${id}`;
+    dal.readOne(query, id, function (err, data) {
         if (err) {
             callback(err);
         } else {
@@ -23,7 +24,8 @@ function getCar(id, callback) {
 }
 
 function createCar(newData, callback) {
-    dal.saveOne(newData, function (err, data) {
+    let query = `INSERT INTO car (id, name, price, monthly, currency, doors, seats, image) VALUES (${newData.id}, '${newData.name}', ${newData.price}, ${newData.monthly}, '${newData.currency}', ${newData.doors}, ${newData.seats}, '${newData.image}')`;
+    dal.saveOne(query, function (err, data) {
         if (err) {
             callback(err);
         } else {
@@ -33,7 +35,8 @@ function createCar(newData, callback) {
 }
 
 function updateCar(car, callback) {
-    dal.updateOne(car, function (err, data) {
+    let query = `UPDATE car SET id = ${car.id}, name = '${car.name}', price = ${car.price}, monthly = ${car.monthly}, currency = '${car.currency}', doors = ${car.doors}, seats = ${car.seats}, image = '${car.image}' WHERE  id = ${car.id}`;
+    dal.updateOne(query, car, function (err, data) {
         if (err) {
             callback(err);
         } else {
@@ -43,7 +46,8 @@ function updateCar(car, callback) {
 }
 
 function deleteCar(id, callback) {
-    dal.deleteOne(id, function (err, data) {
+    let query = `DELETE FROM car WHERE id = ${id}`;
+    dal.deleteOne(query, id, function (err, data) {
         if (err) {
             callback(err);
         } else {
