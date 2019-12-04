@@ -7,8 +7,12 @@ const app = express();
 app.use(cors());
 const PORT = 3201;
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-//check token before render
+var publicDir = require('path').join(__dirname, '/public');
+app.use(express.static(publicDir));
+
+//check token before render 
 app.use(function (req, res, next) {
     if (req.method === 'POST' && req.path === '/register' || req.method === 'POST' && req.path === '/login' || req.method === 'GET' && req.path === '/car') {
         next();

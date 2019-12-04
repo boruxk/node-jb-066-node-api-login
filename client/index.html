@@ -45,7 +45,7 @@
                     <td>${cars[i].currency}</td>
                     <td>${cars[i].doors}</td>
                     <td>${cars[i].seats}</td>
-                    <td><img src="img/${cars[i].image}" style="width:100px"></td>
+                    <td><img src="http://localhost:3201/uploads/${cars[i].image}" style="width:100px"></td>
                 </tr>`
         }
         document.getElementById('cars').innerHTML = html;

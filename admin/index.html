@@ -234,37 +234,35 @@
         });
         buttonAdd.addEventListener("click", () => {
             let htmlAdd = '';
-            htmlAdd += `<form novalidate style="background-color:#ccffd7; padding-left:30px;">
-                            <label>id: <input name="id" class="form-control" value="${leng}" readonly disabled style="background-color:#ccc"></label>
+            htmlAdd += `<form style="background-color:#ccffd7; padding-left:30px;" id=form enctype="multipart/form-data">
+                            <label>id: <input name="id" class="form-control" value="${leng}" readonly style="background-color:#ccc"></label>
                             <label>name: <input name="name" class="form-control"></label>
                             <label>price: <input name="price" class="form-control"></label>
                             <label>monthly: <input name="monthly" class="form-control"></label>
                             <label>currency: <input name="currency" class="form-control"></label>
                             <label>doors: <input name="doors" class="form-control"></label>
                             <label>seats: <input name="seats" class="form-control"></label>
-                            <label>image: <input name="image" class="form-control"></label>
-                            <button id='save' class="btn btn-success">Save</button>
+                            <label>image: <input name="image" id="image" type="file" class="form-control"></label>
+                            <button id="save" class="btn btn-success">Save</button>
                         </form>`
             document.getElementById(`add`).innerHTML = htmlAdd;
             document.getElementById('save').addEventListener('click', function (e) {
                 e.preventDefault();
-                let car = {
-                    id: this.form.id.value,
-                    name: this.form.name.value,
-                    price: this.form.price.value,
-                    monthly: this.form.monthly.value,
-                    currency: this.form.currency.value,
-                    doors: this.form.doors.value,
-                    seats: this.form.seats.value,
-                    image: this.form.image.value
-                };
-                ajaxCall("member", car, "POST", function (data) {
-                    document.getElementById(`add`).innerHTML = "";
-                    setView(data);
-                });
+                let form = new FormData(this.form);
+                 fetch('http://localhost:3201/member', {
+                    method: 'POST',
+                    body: form,
+                    headers: {
+                        "Authorization":  'bearer ' + sessionStorage.getItem("token")
+                    }
+                }).then(res => {
+                     res.text().then(data => {
+                         document.getElementById(`add`).innerHTML = "";
+                         setView(data);
+                     })
+                 });
             });
         });
-
         function setView() {
             ajaxCall("member", null, "GET", function (data) {
                 if (typeof data === "string") {
@@ -326,7 +324,7 @@
                     <td>${cars[i].currency}</td>
                     <td>${cars[i].doors}</td>
                     <td>${cars[i].seats}</td>
-                    <td><img src="img/${cars[i].image}" style="width:100px"></td>
+                    <td><img src="http://localhost:3201/uploads/${cars[i].image}" style="width:100px"></td>
                     <td><button id="edit-${cars[i].id}" style="float:left" class="btn btn-success">EDIT</button>
                         <button id="delete-${cars[i].id}" style="float:right" class="btn btn-danger">DELETE</button></td>
                 </tr>`
